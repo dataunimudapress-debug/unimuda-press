@@ -1,0 +1,197 @@
+import { Transaction, PricingRule, MonthlyTrendData } from '../types';
+
+export const INITIAL_TRANSACTIONS: Transaction[] = [
+  {
+    id: '1',
+    orderId: '#UP-9281',
+    customerName: 'Budi Santoso',
+    customerCategory: 'Umum',
+    orderType: 'Spanduk (3×1m)',
+    serviceType: 'design_print',
+    lengthMeters: 3.0,
+    widthMeters: 1.0,
+    qty: 2,
+    pricePerMeter: 25000,
+    totalAmount: 150000,
+    status: 'Produksi',
+    date: '2024-02-15',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBN8RC8kJUSMeYXjLSoSvKy07wjaG-MzDwX8TVfnM3d_4RM6RY30PgrSHcxuIkFL6PImr4UJbuIDiXG3-Sty9LtTBPL9u0K-FXxE-95v7OOEs66psbIDgqUGm_X5owkO5SrQQo7wPYzo1_VONVdf5gF-d-2xKb4_ArR9nFc1K-3WWLLj4FnFauwEt4zIQ8Le_OZOyZIflJXJEEimVtweK38MbLsoUzUGcDPYL57yw2STcJ__F8qFymVEQ',
+    notes: 'Finishing mata ayam di setiap sudut'
+  },
+  {
+    id: '2',
+    orderId: '#UP-9282',
+    customerName: 'PT Citra Jaya',
+    customerCategory: 'Mitra',
+    orderType: 'Baliho (5×10m)',
+    serviceType: 'print_only',
+    lengthMeters: 5.0,
+    widthMeters: 10.0,
+    qty: 1,
+    pricePerMeter: 90000,
+    totalAmount: 4500000,
+    status: 'Selesai',
+    date: '2024-06-20',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB59TVwR1Kfm2PuH7HzL9t-6pxHDs9UQexz5pV0ERVO6BDGSMp45DQvGLnyuitqklEsNoRtslXulG7R6gUrmmWS_XsR-kijWuYHzT1rS3I2PuzfGQqVTM2dF8Cbp05WN_pbfVIn-khrcZVV1XHFDS77rPJJCLMt7Rv-wEOKJ6OX0Pr_MyIBvv6jQmWraZLZ2wO0mnCEDrpRnGBMop0KsdGYLygk7eMk0lJqTE0an6Rq5m_LAGvkQrpTyA',
+    notes: 'Pengiriman langsung ke lokasi pemasangan'
+  },
+  {
+    id: '3',
+    orderId: '#UP-9283',
+    customerName: 'Ani Wijaya',
+    customerCategory: 'Kampus',
+    orderType: 'X-Banner',
+    serviceType: 'design_print',
+    lengthMeters: 1.6,
+    widthMeters: 0.6,
+    qty: 1,
+    pricePerMeter: 75000,
+    totalAmount: 75000,
+    status: 'Belum Lunas',
+    date: '2025-01-10',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDhNunWNZMPd9CkfjQc7OpJkE7LDrXb0fwdSzISf3quhv2Slu3wRCBpAHDa_CgeZfIOxy4Wiq1jlAgqUvnDS1YVIqPgo7KbNoXae1AV6KWrj25EOkXEaSrzC1UWWZiyP7IRmbw-bkEgh1kFL4avnr-agSClD4UmHz3gIvXR8-Z47JvTeudf85TS0meL6vhbDVsHIDJNDmvMbaw0vmivaJZkfsOH5jk6_KQHYwVMHjAwzTJev0GDIgN9QA',
+    notes: 'Termasuk tiang X-Banner fiber hitam'
+  },
+  {
+    id: '4',
+    orderId: '#UP-9284',
+    customerName: 'Andi Wijaya',
+    customerCategory: 'Persyarikatan',
+    orderType: 'Digital Printing (A3)',
+    serviceType: 'design_print',
+    lengthMeters: 1.0,
+    widthMeters: 1.0,
+    qty: 15,
+    pricePerMeter: 30000,
+    totalAmount: 450000,
+    status: 'Lunas',
+    date: '2025-08-17',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCtepIoAZGIaDtNr3hOg_0SbbTWJoEXrijJIA35Ed3DLjnIDoyBzjtFOt-XgfoGo2ezpJDV7ZAezcDg-Rhd_vl1bU6nEN8kc31pPn_HCcZIjPRoJkmZwArDVuUXo8vDy8ta55BGJNaa-w5CVFmU0xHWyo4WHJEDkDCAP0HC2eIb3AV_8csDkKqwfftEp49DRnXwEkQyPNJgFW6tk89X2Ds0CzX5xtcG55eH7gJ4uiVYshPt_-p2HAomBg',
+    notes: 'Art Paper 260gsm cetak 2 sisi'
+  },
+  {
+    id: '5',
+    orderId: '#UP-9285',
+    customerName: 'Siti Aminah',
+    customerCategory: 'Umum',
+    orderType: 'Banner Outdoor',
+    serviceType: 'design_print',
+    lengthMeters: 4.0,
+    widthMeters: 2.0,
+    qty: 3,
+    pricePerMeter: 50000,
+    totalAmount: 1200000,
+    status: 'DP (50%)',
+    date: '2026-03-05',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDM8O49ITmu3A6G_cDRBZ3umAP2ZMxcjRrr1zqhVIc8c_Pang6HwXbxLzHtP1CRQrXBBdiCPxxX2PZlbB1KXX5CXcqZ968tuHaHTijK-bnwLlOpiIGJRe6IJh7AaVLh7Kat-vYr7BH-qFOEo6FvTBmceEXnjvLQJqYJggd2WAwWcoZqoaeaBvrODVU8WvW3FyzptdVj4uBf-4Jx-BIWL5X9zpF0mEwtOHX7a9PNHdWJF63w_EnlRjLHWQ',
+    notes: 'Bahan Flexi 380gsm high resolution'
+  },
+  {
+    id: '6',
+    orderId: '#UP-9286',
+    customerName: 'PT Global Jaya',
+    customerCategory: 'Mitra',
+    orderType: 'Hardcover Book',
+    serviceType: 'print_only',
+    lengthMeters: 1.0,
+    widthMeters: 1.0,
+    qty: 50,
+    pricePerMeter: 115000,
+    totalAmount: 5750000,
+    status: 'Belum Lunas',
+    date: '2026-07-28',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDhVC2gjzST7_YRO2D9VOytnwtP44kY1H7tYj0QLifn4WEjlB00FKMtvzBB4kXtkhgBclOI9r-PfwnfAkDABMPtbO-9Io0vhN4gkciEZOEZ9V8wwIuIKeAvN-ry31hTHSV_sqaSzkQS12hYGvPYKZllVmNqefEMCiF3OnBqwElgmFa4_BfopMoOJZk4OXII7xm2-UQZcVnU14_5b2IFhmZLq4w1ymId9U6AApH8PXZn6HsKdTRMzjkKWA',
+    notes: 'Jilid benang + pita pembatas merah'
+  }
+];
+
+export const INITIAL_PRICING_RULES: PricingRule[] = [
+  {
+    id: 'pr-1',
+    serviceType: 'Kategori Umum',
+    baseRate: 50000,
+    unit: 'Per Meter²',
+    description: 'Desain+Cetak: Rp 50.000/m² | Cetak Saja: Rp 48.000/m²'
+  },
+  {
+    id: 'pr-2',
+    serviceType: 'Kategori Persyarikatan',
+    baseRate: 48000,
+    unit: 'Per Meter²',
+    description: 'Desain+Cetak: Rp 48.000/m² | Cetak Saja: Rp 45.000/m²'
+  },
+  {
+    id: 'pr-3',
+    serviceType: 'Kategori Mitra',
+    baseRate: 40000,
+    unit: 'Per Meter²',
+    description: 'Cetak Saja: Rp 40.000/m² (Tanpa opsi desain)'
+  },
+  {
+    id: 'pr-4',
+    serviceType: 'Kategori Kampus',
+    baseRate: 40000,
+    unit: 'Per Meter²',
+    description: 'Desain+Cetak: Rp 40.000/m² | Cetak Saja: Rp 38.000/m²'
+  }
+];
+
+export const MONTHLY_TREND_DATA_2026: MonthlyTrendData[] = [
+  { month: 'JAN', income: 55000000, percentageHeight: 50 },
+  { month: 'FEB', income: 68000000, percentageHeight: 62 },
+  { month: 'MAR', income: 72000000, percentageHeight: 65 },
+  { month: 'APR', income: 85000000, percentageHeight: 78 },
+  { month: 'MEI', income: 92000000, percentageHeight: 84 },
+  { month: 'JUN', income: 105000000, percentageHeight: 95 },
+  { month: 'JUL', income: 98000000, percentageHeight: 90 },
+  { month: 'AGU', income: 110000000, percentageHeight: 100 },
+  { month: 'SEP', income: 88000000, percentageHeight: 80 },
+  { month: 'OKT', income: 95000000, percentageHeight: 86 },
+  { month: 'NOV', income: 108000000, percentageHeight: 98 },
+  { month: 'DES', income: 102000000, percentageHeight: 92 },
+];
+
+export const MONTHLY_TREND_DATA_2025: MonthlyTrendData[] = [
+  { month: 'JAN', income: 48000000, percentageHeight: 45 },
+  { month: 'FEB', income: 62000000, percentageHeight: 58 },
+  { month: 'MAR', income: 54000000, percentageHeight: 50 },
+  { month: 'APR', income: 78000000, percentageHeight: 72 },
+  { month: 'MEI', income: 70000000, percentageHeight: 65 },
+  { month: 'JUN', income: 95000000, percentageHeight: 88 },
+  { month: 'JUL', income: 84000000, percentageHeight: 78 },
+  { month: 'AGU', income: 102000000, percentageHeight: 94 },
+  { month: 'SEP', income: 76000000, percentageHeight: 70 },
+  { month: 'OKT', income: 90000000, percentageHeight: 84 },
+  { month: 'NOV', income: 106000000, percentageHeight: 98 },
+  { month: 'DES', income: 98000000, percentageHeight: 90 },
+];
+
+export const MONTHLY_TREND_DATA_2024: MonthlyTrendData[] = [
+  { month: 'JAN', income: 42000000, percentageHeight: 40 },
+  { month: 'FEB', income: 58000000, percentageHeight: 55 },
+  { month: 'MAR', income: 48000000, percentageHeight: 45 },
+  { month: 'APR', income: 72000000, percentageHeight: 70 },
+  { month: 'MEI', income: 64000000, percentageHeight: 60 },
+  { month: 'JUN', income: 90000000, percentageHeight: 85 },
+  { month: 'JUL', income: 78000000, percentageHeight: 75 },
+  { month: 'AGU', income: 96000000, percentageHeight: 90 },
+  { month: 'SEP', income: 68000000, percentageHeight: 65 },
+  { month: 'OKT', income: 84000000, percentageHeight: 80 },
+  { month: 'NOV', income: 102000000, percentageHeight: 95 },
+  { month: 'DES', income: 94000000, percentageHeight: 88 },
+];
+
+export const MONTHLY_TREND_DATA_2023: MonthlyTrendData[] = [
+  { month: 'JAN', income: 32000000, percentageHeight: 35 },
+  { month: 'FEB', income: 45000000, percentageHeight: 48 },
+  { month: 'MAR', income: 40000000, percentageHeight: 42 },
+  { month: 'APR', income: 60000000, percentageHeight: 62 },
+  { month: 'MEI', income: 55000000, percentageHeight: 58 },
+  { month: 'JUN', income: 75000000, percentageHeight: 78 },
+  { month: 'JUL', income: 65000000, percentageHeight: 68 },
+  { month: 'AGU', income: 82000000, percentageHeight: 84 },
+  { month: 'SEP', income: 59000000, percentageHeight: 60 },
+  { month: 'OKT', income: 71000000, percentageHeight: 74 },
+  { month: 'NOV', income: 88000000, percentageHeight: 88 },
+  { month: 'DES', income: 80000000, percentageHeight: 82 },
+];

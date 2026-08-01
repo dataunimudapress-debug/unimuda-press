@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Unimuda Press",
+  "description": "Management Portal untuk Unimuda Press dengan Dashboard, Input Transaksi Baru, Riwayat Transaksi, Laporan, Pengaturan, dan Ekspor Google Apps Script (Code.gs \u0026 Index.html).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
