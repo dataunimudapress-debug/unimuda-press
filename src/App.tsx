@@ -143,6 +143,7 @@ export default function App() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             onOpenImageModal={(url) => setSelectedImageModal(url)}
+            onUpdateStatus={handleUpdateStatus}
           />
         )}
 
