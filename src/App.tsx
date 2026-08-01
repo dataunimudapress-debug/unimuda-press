@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { NavigationTab, Transaction, PricingRule, PaymentStatus, RoundingOption } from './types';
-import { INITIAL_TRANSACTIONS, INITIAL_PRICING_RULES } from './data/initialData';
+import { NavigationTab, Transaction, PaymentStatus, RoundingOption } from './types';
+import { INITIAL_TRANSACTIONS } from './data/initialData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/DashboardView';
@@ -19,7 +19,6 @@ export default function App() {
       return INITIAL_TRANSACTIONS;
     }
   });
-  const [pricingRules] = useState<PricingRule[]>(INITIAL_PRICING_RULES);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedImageModal, setSelectedImageModal] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
