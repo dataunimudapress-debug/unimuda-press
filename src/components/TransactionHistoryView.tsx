@@ -23,6 +23,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('All Types');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Kategori: All');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('Status: All');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -37,21 +38,27 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
     const customerNameStr = t.customerName || '';
     const orderIdStr = t.orderId || '';
     const orderTypeStr = t.orderType || '';
+    const categoryStr = t.customerCategory || '';
 
     const matchesSearch =
       customerNameStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
       orderIdStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      orderTypeStr.toLowerCase().includes(searchTerm.toLowerCase());
+      orderTypeStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      categoryStr.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesType =
       selectedTypeFilter === 'All Types' ||
       orderTypeStr.toLowerCase().includes(selectedTypeFilter.toLowerCase());
 
+    const matchesCategory =
+      selectedCategoryFilter === 'Kategori: All' ||
+      categoryStr.toLowerCase() === selectedCategoryFilter.replace('Kategori: ', '').toLowerCase();
+
     const matchesStatus =
       selectedStatusFilter === 'Status: All' ||
       t.status === selectedStatusFilter;
 
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType && matchesCategory && matchesStatus;
   });
 
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage) || 1;
@@ -167,6 +174,21 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
             ))}
 
             <div className="h-5 w-px bg-[#c1c6d7] mx-1"></div>
+
+            <select
+              value={selectedCategoryFilter}
+              onChange={(e) => {
+                setSelectedCategoryFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 bg-[#f3f4f5] border border-[#c1c6d7] rounded-full text-xs font-bold text-[#414754] cursor-pointer outline-none"
+            >
+              <option value="Kategori: All">Kategori: Semua</option>
+              <option value="Kategori: Kampus">Kategori: Kampus</option>
+              <option value="Kategori: Umum">Kategori: Umum</option>
+              <option value="Kategori: Mitra">Kategori: Mitra</option>
+              <option value="Kategori: Persyarikatan">Kategori: Persyarikatan</option>
+            </select>
 
             <select
               value={selectedStatusFilter}

@@ -20,6 +20,7 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
   const todayStr = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState('2024-01-01');
   const [toDate, setToDate] = useState(todayStr);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Semua');
   const [selectedRounding, setSelectedRounding] = useState<RoundingOption>(currentRoundingOption);
   const [roundingEnabled, setRoundingEnabled] = useState(currentRoundingEnabled);
   const [savedSuccessMessage, setSavedSuccessMessage] = useState(false);
@@ -29,16 +30,26 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
     return 'Rp ' + num.toLocaleString('id-ID');
   };
 
-  const getFilteredTransactions = () => {
+  const getFilteredTransactions = (categoryOverride?: string) => {
+    const categoryToUse = categoryOverride !== undefined ? categoryOverride : selectedCategoryFilter;
     return transactions.filter((t) => {
-      if (!t.date) return true;
-      return t.date >= fromDate && t.date <= toDate;
+      if (t.date && (t.date < fromDate || t.date > toDate)) {
+        return false;
+      }
+      if (categoryToUse !== 'Semua') {
+        const categoryStr = (t.customerCategory || '').toLowerCase();
+        if (categoryStr !== categoryToUse.toLowerCase()) {
+          return false;
+        }
+      }
+      return true;
     });
   };
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = (categoryOverride?: string) => {
     try {
-      const filtered = getFilteredTransactions();
+      const categoryToUse = categoryOverride !== undefined ? categoryOverride : selectedCategoryFilter;
+      const filtered = getFilteredTransactions(categoryToUse);
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
       // Header Brand
@@ -46,17 +57,20 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
       doc.rect(0, 0, 297, 22, 'F');
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
+      doc.setFontSize(15);
       doc.setTextColor(255, 255, 255);
-      doc.text('UNIMUDA PRESS - LAPORAN PERIODE TRANSAKSI', 14, 14);
+      const headerTitle = categoryToUse === 'Semua' 
+        ? 'UNIMUDA PRESS - LAPORAN PERIODE TRANSAKSI' 
+        : `UNIMUDA PRESS - LAPORAN TRANSAKSI KATEGORI ${categoryToUse.toUpperCase()}`;
+      doc.text(headerTitle, 14, 14);
 
       // Period Info
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(60, 60, 60);
       doc.text(`Periode Laporan: ${fromDate} s/d ${toDate}`, 14, 30);
-      doc.text(`Tanggal Export: ${new Date().toLocaleDateString('id-ID')}`, 14, 35);
-      doc.text(`Total Transaksi: ${filtered.length} item`, 14, 40);
+      doc.text(`Kategori Pelanggan: ${categoryToUse === 'Semua' ? 'Semua Kategori (Kampus, Umum, Mitra, Persyarikatan)' : categoryToUse}`, 14, 35);
+      doc.text(`Tanggal Export: ${new Date().toLocaleDateString('id-ID')} | Total: ${filtered.length} transaksi`, 14, 40);
 
       const totalRevenue = filtered.reduce((sum, t) => sum + (t.totalAmount || 0), 0);
       const totalLunas = filtered.filter(t => t.status === 'Lunas' || t.status === 'Selesai').reduce((sum, t) => sum + t.totalAmount, 0);
@@ -65,7 +79,7 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
       doc.setTextColor(128, 0, 0);
       doc.text(`Total Omset: ${formatRupiah(totalRevenue)}`, 200, 30);
       doc.setTextColor(0, 128, 0);
-      doc.text(`Total Lunas/Selesai: ${formatRupiah(totalLunas)}`, 200, 35);
+      doc.text(`Lunas/Selesai: ${formatRupiah(totalLunas)}`, 200, 35);
 
       // Table Data
       const tableRows = filtered.map((t, index) => [
@@ -129,8 +143,9 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
         },
       });
 
-      doc.save(`Laporan_UnimudaPress_${fromDate}_sd_${toDate}.pdf`);
-      setReportNotification(`File PDF Laporan periode ${fromDate} s/d ${toDate} berhasil di-download!`);
+      const catSuffix = categoryToUse === 'Semua' ? '' : `_${categoryToUse}`;
+      doc.save(`Laporan_UnimudaPress${catSuffix}_${fromDate}_sd_${toDate}.pdf`);
+      setReportNotification(`File PDF Laporan [${categoryToUse}] periode ${fromDate} s/d ${toDate} berhasil di-download!`);
       setTimeout(() => setReportNotification(null), 5000);
     } catch (err) {
       console.error('PDF Generation error:', err);
@@ -138,14 +153,16 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
     }
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = (categoryOverride?: string) => {
     try {
-      const filtered = getFilteredTransactions();
+      const categoryToUse = categoryOverride !== undefined ? categoryOverride : selectedCategoryFilter;
+      const filtered = getFilteredTransactions(categoryToUse);
 
       // Create CSV with UTF-8 BOM so Excel opens accented characters and numbers cleanly
       let csv = '\uFEFF';
-      csv += 'LAPORAN TRANSAKSI UNIMUDA PRESS\n';
+      csv += `LAPORAN TRANSAKSI UNIMUDA PRESS - KATEGORI: ${categoryToUse.toUpperCase()}\n`;
       csv += `Periode Laporan:,${fromDate} s/d ${toDate}\n`;
+      csv += `Kategori Pelanggan:,${categoryToUse}\n`;
       csv += `Tanggal Export:,${new Date().toLocaleDateString('id-ID')}\n`;
       csv += `Total Transaksi:,${filtered.length}\n\n`;
 
@@ -167,13 +184,14 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Laporan_UnimudaPress_${fromDate}_sd_${toDate}.csv`;
+      const catSuffix = categoryToUse === 'Semua' ? '' : `_${categoryToUse}`;
+      a.download = `Laporan_UnimudaPress${catSuffix}_${fromDate}_sd_${toDate}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setReportNotification(`File Excel/CSV Laporan periode ${fromDate} s/d ${toDate} berhasil di-download!`);
+      setReportNotification(`File Excel/CSV Laporan [${categoryToUse}] periode ${fromDate} s/d ${toDate} berhasil di-download!`);
       setTimeout(() => setReportNotification(null), 5000);
     } catch (err) {
       console.error('Excel Download error:', err);
@@ -249,8 +267,8 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
           </div>
 
           {/* Section 2: Generate Reports */}
-          <div className="bg-white border border-[#e1e3e4] p-6 rounded-2xl shadow-2xs">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="bg-white border border-[#e1e3e4] p-6 rounded-2xl shadow-2xs space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e1e3e4] pb-4">
               <div className="flex items-center gap-2 text-[#800000]">
                 <span className="material-symbols-outlined">calendar_month</span>
                 <h3 className="font-bold uppercase text-xs tracking-wider text-[#191c1d]">
@@ -317,14 +335,15 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Date Range Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-[#414754] mb-1.5">Dari Tanggal</label>
                 <input
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
-                  className="w-full bg-[#f8f9fa] border border-[#c1c6d7] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#0059bb] outline-none"
+                  className="w-full bg-[#f8f9fa] border border-[#c1c6d7] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#0059bb] outline-none font-medium"
                 />
               </div>
 
@@ -334,34 +353,164 @@ export const ReportsSettingsView: React.FC<ReportsSettingsViewProps> = ({
                   type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
-                  className="w-full bg-[#f8f9fa] border border-[#c1c6d7] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#0059bb] outline-none"
+                  className="w-full bg-[#f8f9fa] border border-[#c1c6d7] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#0059bb] outline-none font-medium"
                 />
               </div>
             </div>
 
+            {/* Customer Category Filter Menu Options */}
+            <div>
+              <label className="block text-xs font-bold text-[#414754] mb-2 flex items-center justify-between">
+                <span>FILTER KATEGORI PELANGGAN</span>
+                <span className="text-blue-700 text-[11px] font-semibold">
+                  Dipilih: {selectedCategoryFilter}
+                </span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {[
+                  { id: 'Semua', label: 'Semua Kategori', icon: 'apps' },
+                  { id: 'Kampus', label: 'Kampus', icon: 'school' },
+                  { id: 'Umum', label: 'Umum', icon: 'person' },
+                  { id: 'Mitra', label: 'Mitra', icon: 'handshake' },
+                  { id: 'Persyarikatan', label: 'Persyarikatan', icon: 'corporate_fare' },
+                ].map((cat) => {
+                  const isSelected = selectedCategoryFilter === cat.id;
+                  const count = getFilteredTransactions(cat.id).length;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setSelectedCategoryFilter(cat.id)}
+                      className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#800000] text-white border-[#800000] shadow-sm ring-2 ring-offset-1 ring-[#800000]'
+                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-xl">{cat.icon}</span>
+                      <span className="text-xs font-bold leading-none">{cat.label}</span>
+                      <span className={`text-[10px] ${isSelected ? 'text-red-100' : 'text-gray-500'}`}>
+                        ({count} Transaksi)
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {reportNotification && (
-              <div className="mb-4 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2 animate-fadeIn">
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2 animate-fadeIn">
                 <span className="material-symbols-outlined text-base">check_circle</span>
                 <span>{reportNotification}</span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Primary Action Download Buttons for Currently Selected Category */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
               <button
-                onClick={handleDownloadPdf}
-                className="bg-[#800000] hover:bg-[#600000] text-white py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                onClick={() => handleDownloadPdf()}
+                className="bg-[#800000] hover:bg-[#600000] text-white py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-98"
               >
                 <span className="material-symbols-outlined text-xl">picture_as_pdf</span>
-                <span>Download Laporan PDF</span>
+                <span>Download Laporan PDF ({selectedCategoryFilter})</span>
               </button>
 
               <button
-                onClick={handleDownloadExcel}
-                className="bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-2xs transition-all cursor-pointer active:scale-98"
+                onClick={() => handleDownloadExcel()}
+                className="bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-2xs transition-all cursor-pointer active:scale-98"
               >
                 <span className="material-symbols-outlined text-xl text-emerald-600">table_view</span>
-                <span>Download Laporan Excel</span>
+                <span>Download Laporan Excel ({selectedCategoryFilter})</span>
               </button>
+            </div>
+
+            {/* Quick Menu Category Download Cards */}
+            <div className="pt-4 border-t border-gray-100 space-y-3">
+              <h4 className="font-extrabold text-xs text-[#191c1d] uppercase tracking-wider flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-base text-[#0059bb]">folder_zip</span>
+                <span>Menu Pilihan Download Laporan Per Kategori</span>
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {[
+                  {
+                    name: 'Kampus',
+                    icon: 'school',
+                    desc: 'Mahasiswa, Dosen, Fakultas, & Unit Unimuda',
+                    color: 'bg-blue-50/50 border-blue-200 text-blue-900',
+                    iconBg: 'bg-blue-600 text-white',
+                  },
+                  {
+                    name: 'Umum',
+                    icon: 'person',
+                    desc: 'Masyarakat umum & perorangan',
+                    color: 'bg-emerald-50/50 border-emerald-200 text-emerald-900',
+                    iconBg: 'bg-emerald-600 text-white',
+                  },
+                  {
+                    name: 'Mitra',
+                    icon: 'handshake',
+                    desc: 'Perusahaan, instansi & vendor mitra',
+                    color: 'bg-amber-50/50 border-amber-200 text-amber-900',
+                    iconBg: 'bg-amber-600 text-white',
+                  },
+                  {
+                    name: 'Persyarikatan',
+                    icon: 'corporate_fare',
+                    desc: 'Muhammadiyah, Aisyiyah, Ortom & Amal Usaha',
+                    color: 'bg-purple-50/50 border-purple-200 text-purple-900',
+                    iconBg: 'bg-purple-600 text-white',
+                  },
+                ].map((cat) => {
+                  const catTxs = getFilteredTransactions(cat.name);
+                  const catRevenue = catTxs.reduce((acc, t) => acc + (t.totalAmount || 0), 0);
+                  return (
+                    <div
+                      key={cat.name}
+                      className={`p-4 rounded-xl border ${cat.color} flex flex-col justify-between gap-3 transition-all hover:shadow-xs`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2.5 rounded-lg ${cat.iconBg} shrink-0`}>
+                          <span className="material-symbols-outlined text-xl">{cat.icon}</span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <h5 className="font-extrabold text-sm text-[#191c1d]">
+                              Laporan {cat.name}
+                            </h5>
+                            <span className="text-[11px] font-bold bg-white/80 px-2 py-0.5 rounded-md border border-gray-200">
+                              {catTxs.length} Transaksi
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-600 mt-0.5 truncate">{cat.desc}</p>
+                          <p className="text-xs font-bold text-[#800000] mt-1">
+                            Total: {formatRupiah(catRevenue)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1 border-t border-gray-200/60">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadPdf(cat.name)}
+                          className="flex-1 bg-[#800000] hover:bg-[#600000] text-white py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
+                          <span>PDF</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadExcel(cat.name)}
+                          className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-sm text-emerald-600">table_view</span>
+                          <span>Excel</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
